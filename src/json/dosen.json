@@ -1,0 +1,22 @@
+{
+  "dataDosen": [
+    {
+      "id": 1,
+      "nip": "1978001",
+      "nama": "Dr. Indra",
+      "status": true
+    },
+    {
+      "id": 2,
+      "nip": "1983002",
+      "nama": "Prof. Lina",
+      "status": false
+    },
+    {
+      "id": 3,
+      "nip": "1989003",
+      "nama": "Ahmad Yusuf",
+      "status": true
+    }
+  ]
+}

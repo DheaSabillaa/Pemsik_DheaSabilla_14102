@@ -1,0 +1,7 @@
+{
+  "dataMatkul": [
+    { "id": 1, "kode": "MK101", "nama": "Pemrograman Web", "sks": 3 },
+    { "id": 2, "kode": "MK102", "nama": "Sistem Basis Data", "sks": 2 },
+    { "id": 3, "kode": "MK103", "nama": "Struktur Data", "sks": 3 }
+  ]
+}

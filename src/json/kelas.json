@@ -1,0 +1,18 @@
+{
+  "dataKelas": [
+    {
+      "id": 1,
+      "namaKelas": "Kelas A",
+      "mataKuliah": "Pemrograman Web",
+      "dosen": "Budi Santoso",
+      "mahasiswa": ["2201001", "2201002"]
+    },
+    {
+      "id": 2,
+      "namaKelas": "Kelas B",
+      "mataKuliah": "Basis Data",
+      "dosen": "Siti Aminah",
+      "mahasiswa": ["2201002", "2201003"]
+    }
+  ]
+}

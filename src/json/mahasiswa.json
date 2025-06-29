@@ -1,0 +1,25 @@
+{
+  "dataMahasiswa": [
+    {
+      "nim": "2201001",
+      "nama": "Aulia Rahma",
+      "jurusan": "Teknik Informatika",
+      "status": true,
+      "sks": 0
+    },
+    {
+      "nim": "2201002",
+      "nama": "Dimas Pratama",
+      "jurusan": "Sistem Informasi",
+      "status": true,
+      "sks": 2
+    },
+    {
+      "nim": "2201003",
+      "nama": "Siti Nurhaliza",
+      "jurusan": "Teknik Komputer",
+      "status": true,
+      "sks": 3
+    }
+  ]
+}
