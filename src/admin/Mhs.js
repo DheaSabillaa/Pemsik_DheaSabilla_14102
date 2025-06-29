@@ -33,12 +33,34 @@ const Mhs = () => {
   });
   const [user] = useState(() => JSON.parse(localStorage.getItem("user")));
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("nim");
+  const [perPage, setPerPage] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const queryClient = useQueryClient();
 
   const { data: mahasiswa = [] } = useQuery({
     queryKey: ["mahasiswa"],
-    queryFn: () => getDataFromStorage(),
+    queryFn: getDataFromStorage,
   });
+
+  const filtered = mahasiswa.filter((m) =>
+    m.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.nim.includes(searchTerm)
+  );
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (a[sortBy] < b[sortBy]) return -1;
+    if (a[sortBy] > b[sortBy]) return 1;
+    return 0;
+  });
+
+  const totalPage = Math.ceil(sorted.length / perPage);
+  const paginatedData = sorted.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage
+  );
 
   const saveData = (newData) => {
     setDataToStorage(newData);
@@ -122,15 +144,35 @@ const Mhs = () => {
               )}
             </div>
 
-            {role === "mahasiswa" && user && (
-              <div className="mb-4 text-sm text-gray-600">
-                Total SKS yang Anda ambil:{" "}
-                <span className="font-semibold">
-                  {mahasiswa.find((m) => m.nim === user.nim)?.sks || 0}
-                </span>{" "}
-                dari maksimal {MAX_SKS} SKS
-              </div>
-            )}
+            <div className="flex justify-between items-center mb-2">
+              <input
+                type="text"
+                placeholder="Cari NIM/Nama..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border px-3 py-1 rounded"
+              />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border px-3 py-1 rounded"
+              >
+                <option value="nim">Sort by NIM</option>
+                <option value="nama">Sort by Nama</option>
+              </select>
+              <select
+                value={perPage}
+                onChange={(e) => {
+                  setPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border px-3 py-1 rounded"
+              >
+                <option value={5}>5 / halaman</option>
+                <option value={10}>10 / halaman</option>
+                <option value={20}>20 / halaman</option>
+              </select>
+            </div>
 
             <table className="w-full text-sm text-gray-700">
               <thead className="bg-blue-600 text-white">
@@ -139,24 +181,21 @@ const Mhs = () => {
                   <th className="py-2 px-4 text-left">Nama</th>
                   <th className="py-2 px-4 text-left">Jurusan</th>
                   <th className="py-2 px-4 text-left">Status</th>
-                  <th className="py-2 px-4 text-left">SKS Ditempuh</th>
+                  <th className="py-2 px-4 text-left">SKS</th>
                   {(role === "admin" || role === "dosen") && (
                     <th className="py-2 px-4 text-center">Aksi</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {mahasiswa.length === 0 ? (
+                {paginatedData.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={role === "admin" || role === "dosen" ? 6 : 5}
-                      className="text-center py-4 text-gray-500"
-                    >
-                      Belum ada data mahasiswa
+                    <td colSpan={6} className="text-center py-4 text-gray-500">
+                      Tidak ada data
                     </td>
                   </tr>
                 ) : (
-                  mahasiswa.map((mhs, index) => (
+                  paginatedData.map((mhs, index) => (
                     <tr key={index} className="even:bg-gray-100 odd:bg-white">
                       <td className="py-2 px-4">{mhs.nim}</td>
                       <td className="py-2 px-4">{mhs.nama}</td>
@@ -199,6 +238,28 @@ const Mhs = () => {
                 )}
               </tbody>
             </table>
+
+            {totalPage > 1 && (
+              <div className="flex justify-between items-center mt-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="bg-gray-200 px-3"
+                >
+                  Prev
+                </Button>
+                <span>
+                  Halaman {currentPage} dari {totalPage}
+                </span>
+                <Button
+                  disabled={currentPage === totalPage}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="bg-gray-200 px-3"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </main>
         <Footer />

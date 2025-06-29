@@ -22,9 +22,14 @@ const Kelas = () => {
     return user.role;
   });
 
+  const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(5);
+  const [page, setPage] = useState(1);
+  const offset = (page - 1) * limit;
+
   const queryClient = useQueryClient();
 
-  const { data: kelas = [], refetch: refetchKelas } = useQuery({
+  const { data: kelas = [] } = useQuery({
     queryKey: ["dataKelas"],
     queryFn: () => {
       const stored = localStorage.getItem("dataKelas");
@@ -93,6 +98,17 @@ const Kelas = () => {
     return listMahasiswa.find((m) => m.nim === nim);
   };
 
+  const filtered = kelas.filter(
+    (k) =>
+      k.namaKelas.toLowerCase().includes(search.toLowerCase()) ||
+      k.mataKuliah.toLowerCase().includes(search.toLowerCase()) ||
+      k.dosen.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const paginated = filtered.slice(offset, offset + limit);
+
+  const totalPages = Math.ceil(filtered.length / limit);
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -113,6 +129,27 @@ const Kelas = () => {
               </Button>
             </div>
 
+            <div className="flex justify-between items-center mb-2">
+              <input
+                type="text"
+                placeholder="Cari kelas..."
+                className="border px-2 py-1 rounded"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="border px-2 py-1 rounded"
+              >
+                {[5, 10, 15].map((val) => (
+                  <option key={val} value={val}>
+                    {val} / halaman
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <table className="w-full text-sm text-gray-700">
               <thead className="bg-blue-600 text-white">
                 <tr>
@@ -124,14 +161,14 @@ const Kelas = () => {
                 </tr>
               </thead>
               <tbody>
-                {kelas.length === 0 ? (
+                {paginated.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="text-center py-4 text-gray-500">
-                      Belum ada data kelas
+                      Tidak ada data
                     </td>
                   </tr>
                 ) : (
-                  kelas.map((item) => (
+                  paginated.map((item) => (
                     <tr key={item.id} className="even:bg-gray-100 odd:bg-white">
                       <td className="py-2 px-4">{item.namaKelas}</td>
                       <td className="py-2 px-4">{item.mataKuliah}</td>
@@ -171,6 +208,28 @@ const Kelas = () => {
                 )}
               </tbody>
             </table>
+
+            <div className="flex justify-between items-center mt-4">
+              <span className="text-sm text-gray-600">
+                Halaman {page} dari {totalPages}
+              </span>
+              <div className="space-x-2">
+                <Button
+                  className="bg-gray-300"
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={page === 1}
+                >
+                  Prev
+                </Button>
+                <Button
+                  className="bg-gray-300"
+                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </main>
         <Footer />

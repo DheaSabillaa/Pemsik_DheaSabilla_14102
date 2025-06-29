@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Button from "../components/atoms/Button";
 import Modal from "../components/molecules/Modal";
 import FormDosen from "../components/molecules/FormDosen";
@@ -36,10 +36,7 @@ const Dosen = () => {
         if (Array.isArray(parsed)) {
           return parsed;
         } else {
-          localStorage.setItem(
-            "dataDosen",
-            JSON.stringify(dataDosen.dataDosen)
-          );
+          localStorage.setItem("dataDosen", JSON.stringify(dataDosen.dataDosen));
           return dataDosen.dataDosen;
         }
       } catch (e) {
@@ -48,6 +45,34 @@ const Dosen = () => {
       }
     },
   });
+
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("nama");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [limit, setLimit] = useState(5);
+  const [page, setPage] = useState(1);
+
+  const filteredSortedDosen = useMemo(() => {
+    let filtered = dosen.filter((d) =>
+      d.nama.toLowerCase().includes(search.toLowerCase()) ||
+      d.nip.toLowerCase().includes(search.toLowerCase())
+    );
+    filtered.sort((a, b) => {
+      const fieldA = a[sortBy]?.toString().toLowerCase() || "";
+      const fieldB = b[sortBy]?.toString().toLowerCase() || "";
+      if (fieldA < fieldB) return sortOrder === "asc" ? -1 : 1;
+      if (fieldA > fieldB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    return filtered;
+  }, [dosen, search, sortBy, sortOrder]);
+
+  const paginatedDosen = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredSortedDosen.slice(start, start + limit);
+  }, [filteredSortedDosen, page, limit]);
+
+  const totalPages = Math.ceil(filteredSortedDosen.length / limit);
 
   const saveToStorage = (updatedList) => {
     localStorage.setItem("dataDosen", JSON.stringify(updatedList));
@@ -120,6 +145,41 @@ const Dosen = () => {
               )}
             </div>
 
+            <div className="flex justify-between mb-2">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari nama / NIP"
+                className="border rounded px-3 py-1"
+              />
+              <div className="flex items-center space-x-2">
+                <select
+                  value={limit}
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                  className="border rounded px-2 py-1"
+                >
+                  {[5, 10, 20].map((num) => (
+                    <option key={num} value={num}>{num}/halaman</option>
+                  ))}
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border rounded px-2 py-1"
+                >
+                  <option value="nama">Sort by Nama</option>
+                  <option value="nip">Sort by NIP</option>
+                </select>
+                <button
+                  onClick={() => setSortOrder((o) => (o === "asc" ? "desc" : "asc"))}
+                  className="text-sm"
+                >
+                  {sortOrder === "asc" ? "⬆️" : "⬇️"}
+                </button>
+              </div>
+            </div>
+
             <table className="w-full text-sm text-gray-700">
               <thead className="bg-blue-600 text-white">
                 <tr>
@@ -133,7 +193,7 @@ const Dosen = () => {
                 </tr>
               </thead>
               <tbody>
-                {dosen.length === 0 ? (
+                {paginatedDosen.length === 0 ? (
                   <tr>
                     <td
                       colSpan={role === "admin" ? 5 : 4}
@@ -143,7 +203,7 @@ const Dosen = () => {
                     </td>
                   </tr>
                 ) : (
-                  dosen.map((dsn) => (
+                  paginatedDosen.map((dsn) => (
                     <tr key={dsn.id} className="even:bg-gray-100 odd:bg-white">
                       <td className="py-2 px-4">{dsn.nip}</td>
                       <td className="py-2 px-4">{dsn.nama}</td>
@@ -183,6 +243,28 @@ const Dosen = () => {
                 )}
               </tbody>
             </table>
+
+            <div className="flex justify-between items-center mt-4">
+              <span>
+                Halaman {page} dari {totalPages}
+              </span>
+              <div className="space-x-2">
+                <Button
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={page === 1}
+                  className="bg-gray-300"
+                >
+                  Prev
+                </Button>
+                <Button
+                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="bg-gray-300"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </main>
         <Footer />
